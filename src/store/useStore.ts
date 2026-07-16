@@ -43,11 +43,18 @@ export const useStore = create<AppState>((set, get) => ({
   fetchPatterns: async () => {
     set({ isLoading: true })
     try {
+      if (!supabase) {
+        const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
+        set({ patterns: saved })
+        return
+      }
       const { data, error } = await supabase.from('patterns').select('*').order('created_at', { ascending: false })
       if (error) throw error
       set({ patterns: data || [] })
     } catch (error) {
       console.error('Failed to fetch patterns:', error)
+      const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
+      set({ patterns: saved })
     } finally {
       set({ isLoading: false })
     }
@@ -56,11 +63,18 @@ export const useStore = create<AppState>((set, get) => ({
   fetchPosts: async () => {
     set({ isLoading: true })
     try {
+      if (!supabase) {
+        const saved = JSON.parse(localStorage.getItem('posts') || '[]')
+        set({ posts: saved })
+        return
+      }
       const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false })
       if (error) throw error
       set({ posts: data || [] })
     } catch (error) {
       console.error('Failed to fetch posts:', error)
+      const saved = JSON.parse(localStorage.getItem('posts') || '[]')
+      set({ posts: saved })
     } finally {
       set({ isLoading: false })
     }
@@ -68,17 +82,36 @@ export const useStore = create<AppState>((set, get) => ({
 
   fetchComments: async (postId) => {
     try {
+      if (!supabase) {
+        const saved = JSON.parse(localStorage.getItem(`comments_${postId}`) || '[]')
+        set({ comments: saved })
+        return
+      }
       const { data, error } = await supabase.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: true })
       if (error) throw error
       set({ comments: data || [] })
     } catch (error) {
       console.error('Failed to fetch comments:', error)
+      const saved = JSON.parse(localStorage.getItem(`comments_${postId}`) || '[]')
+      set({ comments: saved })
     }
   },
 
   savePattern: async (pattern) => {
     set({ isLoading: true })
     try {
+      if (!supabase) {
+        const newPattern = {
+          ...pattern,
+          id: Date.now().toString(),
+          created_at: new Date().toISOString()
+        } as Pattern
+        const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
+        saved.unshift(newPattern)
+        localStorage.setItem('patterns', JSON.stringify(saved))
+        set(state => ({ patterns: [newPattern, ...state.patterns] }))
+        return newPattern
+      }
       const { data, error } = await supabase.from('patterns').insert([pattern]).select()
       if (error) throw error
       const newPattern = data?.[0]
@@ -96,6 +129,13 @@ export const useStore = create<AppState>((set, get) => ({
 
   deletePattern: async (id) => {
     try {
+      if (!supabase) {
+        const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
+        const filtered = saved.filter((p: Pattern) => p.id !== id)
+        localStorage.setItem('patterns', JSON.stringify(filtered))
+        set(state => ({ patterns: state.patterns.filter(p => p.id !== id) }))
+        return
+      }
       const { error } = await supabase.from('patterns').delete().eq('id', id)
       if (error) throw error
       set(state => ({ patterns: state.patterns.filter(p => p.id !== id) }))
@@ -107,6 +147,18 @@ export const useStore = create<AppState>((set, get) => ({
   createPost: async (post) => {
     set({ isLoading: true })
     try {
+      if (!supabase) {
+        const newPost = {
+          ...post,
+          id: Date.now().toString(),
+          created_at: new Date().toISOString()
+        } as Post
+        const saved = JSON.parse(localStorage.getItem('posts') || '[]')
+        saved.unshift(newPost)
+        localStorage.setItem('posts', JSON.stringify(saved))
+        set(state => ({ posts: [newPost, ...state.posts] }))
+        return newPost
+      }
       const { data, error } = await supabase.from('posts').insert([post]).select()
       if (error) throw error
       const newPost = data?.[0]
@@ -124,6 +176,13 @@ export const useStore = create<AppState>((set, get) => ({
 
   searchPatterns: async (keyword) => {
     try {
+      if (!supabase) {
+        const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
+        return saved.filter((p: Pattern) => 
+          p.title.toLowerCase().includes(keyword.toLowerCase()) ||
+          p.keywords.some((k: string) => k.toLowerCase().includes(keyword.toLowerCase()))
+        )
+      }
       const { data, error } = await supabase.from('patterns').select('*')
         .ilike('title', `%${keyword}%`)
         .or(`keywords.ilike.%${keyword}%`)

@@ -1,6 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-id.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+let supabaseClient: SupabaseClient | null = null
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+try {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-id.supabase.co'
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+  
+  if (supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://your-project-id.supabase.co' && supabaseAnonKey !== 'your-anon-key') {
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  }
+} catch (error) {
+  console.warn('Supabase initialization failed, using local storage fallback')
+}
+
+export const supabase = supabaseClient
