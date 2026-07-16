@@ -28,8 +28,8 @@ export function CreatePage() {
         
         const img = new Image()
         img.crossOrigin = 'anonymous'
-        img.onload = () => {
-          const result = generateGrid(img, gridSize)
+        img.onload = async () => {
+          const result = await generateGrid(img, gridSize)
           setGrid(result.grid)
           setIsProcessing(false)
         }
@@ -53,8 +53,8 @@ export function CreatePage() {
     setIsProcessing(true)
     const img = new Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const result = generateGrid(img, gridSize)
+    img.onload = async () => {
+      const result = await generateGrid(img, gridSize)
       setGrid(result.grid)
       setIsProcessing(false)
     }

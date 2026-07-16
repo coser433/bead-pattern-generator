@@ -20,39 +20,41 @@ export function getImageData(img: HTMLImageElement): ImageData {
   return ctx.getImageData(0, 0, img.width, img.height)
 }
 
-export function resizeImage(img: HTMLImageElement, maxSize: number): HTMLImageElement {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')!
-  
-  let width = img.width
-  let height = img.height
-  
-  if (width > height) {
-    if (width > maxSize) {
-      height = (height * maxSize) / width
-      width = maxSize
+export async function resizeImage(img: HTMLImageElement, maxSize: number): Promise<HTMLImageElement> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    
+    let width = img.width
+    let height = img.height
+    
+    if (width > height) {
+      if (width > maxSize) {
+        height = (height * maxSize) / width
+        width = maxSize
+      }
+    } else {
+      if (height > maxSize) {
+        width = (width * maxSize) / height
+        height = maxSize
+      }
     }
-  } else {
-    if (height > maxSize) {
-      width = (width * maxSize) / height
-      height = maxSize
-    }
-  }
-  
-  canvas.width = width
-  canvas.height = height
-  ctx.drawImage(img, 0, 0, width, height)
-  
-  const resizedImg = new Image()
-  resizedImg.src = canvas.toDataURL()
-  return resizedImg
+    
+    canvas.width = width
+    canvas.height = height
+    ctx.drawImage(img, 0, 0, width, height)
+    
+    const resizedImg = new Image()
+    resizedImg.onload = () => resolve(resizedImg)
+    resizedImg.src = canvas.toDataURL()
+  })
 }
 
-export function generateGrid(
+export async function generateGrid(
   img: HTMLImageElement,
   gridSize: number
-): { grid: PerlerColor[][]; gridData: GridCell[][]; width: number; height: number } {
-  const resized = resizeImage(img, gridSize)
+): Promise<{ grid: PerlerColor[][]; gridData: GridCell[][]; width: number; height: number }> {
+  const resized = await resizeImage(img, gridSize)
   const imageData = getImageData(resized)
   const { width, height } = imageData
   
