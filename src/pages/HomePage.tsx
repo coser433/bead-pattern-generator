@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Upload, Sparkles, Heart, Users, ArrowRight, Star } from 'lucide-react'
+import { PixelPattern } from '../components/PixelPattern'
 
 const features = [
   {
@@ -23,11 +24,11 @@ const features = [
 ]
 
 const mockPatterns = [
-  { id: '1', title: 'Hello Kitty', keywords: ['卡通', '可爱'], grid_size: 30, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=hello%20kitty%20perler%20bead%20pattern%20cute%20pink&image_size=square' },
-  { id: '2', title: '皮卡丘', keywords: ['宠物小精灵', '动漫'], grid_size: 40, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=pikachu%20perler%20bead%20pattern%20yellow%20cute&image_size=square' },
-  { id: '3', title: '哆啦A梦', keywords: ['卡通', '经典'], grid_size: 35, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=doraemon%20perler%20bead%20pattern%20blue%20cat&image_size=square' },
-  { id: '4', title: '美乐蒂', keywords: ['可爱', '兔子'], grid_size: 28, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=my%20melody%20perler%20bead%20pattern%20pink%20rabbit&image_size=square' },
-  { id: '5', title: '星黛露', keywords: ['迪士尼', '兔子'], grid_size: 45, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=stellalou%20perler%20bead%20pattern%20purple%20rabbit&image_size=square' },
+  { id: '1', title: 'Hello Kitty', keywords: ['卡通', '可爱'], grid_size: 30, pattern: 'hello-kitty' as const },
+  { id: '2', title: '皮卡丘', keywords: ['宠物小精灵', '动漫'], grid_size: 40, pattern: 'pikachu' as const },
+  { id: '3', title: '哆啦A梦', keywords: ['卡通', '经典'], grid_size: 35, pattern: 'doraemon' as const },
+  { id: '4', title: '美乐蒂', keywords: ['可爱', '兔子'], grid_size: 28, pattern: 'my-melody' as const },
+  { id: '5', title: '星黛露', keywords: ['迪士尼', '兔子'], grid_size: 45, pattern: 'stellalou' as const },
 ]
 
 export function HomePage() {
@@ -122,12 +123,8 @@ export function HomePage() {
                 key={pattern.id}
                 className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer group"
               >
-                <div className="relative h-48 bg-gray-100">
-                  <img
-                    src={pattern.image_url}
-                    alt={pattern.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="relative h-48 bg-gray-100 flex items-center justify-center">
+                  <PixelPattern pattern={pattern.pattern} size={192} />
                   <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
                     <Star size={14} className="text-yellow-400 fill-yellow-400" />
                     <span className="text-sm font-medium text-gray-700">热门</span>

@@ -3,12 +3,19 @@ import { Plus, Image, Video, X, Send, User } from 'lucide-react'
 import { Post } from '../types'
 import { PostCard } from '../components/PostCard'
 
+const pixelPatterns: Record<string, string> = {
+  'hello-kitty': `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="#FFE4E9"/><circle cx="5" cy="6" r="3" fill="#1a1a1a"/><circle cx="15" cy="6" r="3" fill="#1a1a1a"/><circle cx="5" cy="6" r="1" fill="#fff"/><circle cx="15" cy="6" r="1" fill="#fff"/><circle cx="10" cy="9" r="1" fill="#1a1a1a"/><rect x="8" y="11" width="4" height="2" rx="1" fill="#FF6B8A"/><circle cx="4" cy="3" r="2" fill="#FF1493"/><circle cx="16" cy="3" r="2" fill="#FF1493"/></svg>`,
+  'pikachu': `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="#FFD700"/><polygon points="3,4 5,10 1,10" fill="#FFD700"/><polygon points="17,4 15,10 19,10" fill="#FFD700"/><polygon points="3,5 5,9 2,9" fill="#FF6347"/><polygon points="17,5 15,9 18,9" fill="#FF6347"/><circle cx="7" cy="7" r="2" fill="#1a1a1a"/><circle cx="13" cy="7" r="2" fill="#1a1a1a"/><circle cx="7" cy="7" r="0.5" fill="#fff"/><circle cx="13" cy="7" r="0.5" fill="#fff"/><circle cx="10" cy="11" r="2" fill="#FF6347"/><rect x="8" y="13" width="4" height="1" fill="#1a1a1a"/></svg>`,
+  'workspace': `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="#F5F5DC"/><rect x="2" y="2" width="16" height="4" fill="#8B4513"/><rect x="2" y="8" width="6" height="6" fill="#FFD700"/><rect x="9" y="8" width="6" height="6" fill="#FF69B4"/><rect x="16" y="8" width="2" height="6" fill="#00BFFF"/><circle cx="4" cy="16" r="1.5" fill="#FF0000"/><circle cx="7" cy="16" r="1.5" fill="#00FF00"/><circle cx="10" cy="16" r="1.5" fill="#0000FF"/><circle cx="13" cy="16" r="1.5" fill="#FFD700"/><circle cx="16" cy="16" r="1.5" fill="#FF69B4"/></svg>`,
+  'stellalou': `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20" fill="#9370DB"/><polygon points="4,3 7,9 1,9" fill="#9370DB"/><polygon points="16,3 13,9 19,9" fill="#9370DB"/><polygon points="5,4 7,8 3,8" fill="#DDA0DD"/><polygon points="15,4 13,8 17,8" fill="#DDA0DD"/><circle cx="7" cy="9" r="1.5" fill="#1a1a1a"/><circle cx="13" cy="9" r="1.5" fill="#1a1a1a"/><circle cx="7" cy="9" r="0.5" fill="#fff"/><circle cx="13" cy="9" r="0.5" fill="#fff"/><circle cx="10" cy="12" r="1" fill="#FF6347"/><path d="M 8 14 Q 10 16 12 14" stroke="#1a1a1a" stroke-width="0.5" fill="none"/><rect x="6" y="16" width="8" height="2" fill="#FFD700"/></svg>`,
+}
+
 const mockPosts: Post[] = [
   {
     id: '1',
     user_id: '1',
     content: '今天完成了这个Hello Kitty拼豆作品，用了大概500颗豆子，花了3个小时！超级喜欢💕',
-    media_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=hello%20kitty%20perler%20bead%20art%20finished%20product%20cute&image_size=square',
+    media_url: pixelPatterns['hello-kitty'],
     media_type: 'image',
     likes: 128,
     created_at: '2024-01-15T10:30:00',
@@ -17,7 +24,7 @@ const mockPosts: Post[] = [
     id: '2',
     user_id: '2',
     content: '皮卡丘终于完成啦！黄色豆子用得最多，眼睛部分最难弄😅',
-    media_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=pikachu%20perler%20bead%20art%20finished%20product%20yellow&image_size=square',
+    media_url: pixelPatterns['pikachu'],
     media_type: 'image',
     likes: 96,
     created_at: '2024-01-15T09:15:00',
@@ -26,7 +33,7 @@ const mockPosts: Post[] = [
     id: '3',
     user_id: '3',
     content: '分享一下我的拼豆工作台，最近迷上了做迪士尼系列的拼豆图✨',
-    media_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=perler%20bead%20workspace%20craft%20station%20colorful%20beads&image_size=square',
+    media_url: pixelPatterns['workspace'],
     media_type: 'image',
     likes: 75,
     created_at: '2024-01-14T18:45:00',
@@ -35,7 +42,7 @@ const mockPosts: Post[] = [
     id: '4',
     user_id: '4',
     content: '第一次尝试做这么大的图案，星黛露太美了！',
-    media_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=stellalou%20perler%20bead%20art%20large%20purple%20rabbit&image_size=square',
+    media_url: pixelPatterns['stellalou'],
     media_type: 'image',
     likes: 156,
     created_at: '2024-01-14T15:20:00',

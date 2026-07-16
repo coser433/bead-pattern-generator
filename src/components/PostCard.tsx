@@ -7,6 +7,8 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onComment }: PostCardProps) {
+  const isSvg = post.media_url?.startsWith('<svg')
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="flex items-center space-x-3 p-4 border-b border-gray-100">
@@ -27,11 +29,18 @@ export function PostCard({ post, onComment }: PostCardProps) {
       
       {post.media_url && (
         <div className="relative">
-          <img
-            src={post.media_url}
-            alt="Post media"
-            className="w-full max-h-96 object-cover"
-          />
+          {isSvg ? (
+            <div 
+              className="w-full max-h-96 flex items-center justify-center bg-gray-100"
+              dangerouslySetInnerHTML={{ __html: post.media_url }}
+            />
+          ) : (
+            <img
+              src={post.media_url}
+              alt="Post media"
+              className="w-full max-h-96 object-cover"
+            />
+          )}
         </div>
       )}
       
