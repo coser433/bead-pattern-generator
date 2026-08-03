@@ -1,18 +1,11 @@
-import { useState } from 'react'
-import { Search, Sparkles, Clock, TrendingUp, Star } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Sparkles, Clock, TrendingUp, Star, X, Trash2, Plus, Upload } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Pattern } from '../types'
-import { PatternCard } from '../components/PatternCard'
-
-const mockPatterns: Pattern[] = [
-  { id: '1', user_id: '1', title: 'Hello Kitty', keywords: ['卡通', '可爱', '粉色'], color_map: {}, grid_data: [], grid_size: 30, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=hello%20kitty%20perler%20bead%20pattern%20cute%20pink%20cat%20pixel%20art&image_size=square', created_at: '2024-01-15' },
-  { id: '2', user_id: '2', title: '皮卡丘', keywords: ['宠物小精灵', '动漫', '黄色'], color_map: {}, grid_data: [], grid_size: 40, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=pikachu%20perler%20bead%20pattern%20yellow%20pokemon%20pixel%20art&image_size=square', created_at: '2024-01-14' },
-  { id: '3', user_id: '3', title: '哆啦A梦', keywords: ['卡通', '经典', '蓝色'], color_map: {}, grid_data: [], grid_size: 35, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=doraemon%20perler%20bead%20pattern%20blue%20cat%20robot%20pixel%20art&image_size=square', created_at: '2024-01-13' },
-  { id: '4', user_id: '4', title: '美乐蒂', keywords: ['可爱', '兔子', '粉色'], color_map: {}, grid_data: [], grid_size: 28, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=my%20melody%20perler%20bead%20pattern%20pink%20rabbit%20pixel%20art&image_size=square', created_at: '2024-01-12' },
-  { id: '5', user_id: '5', title: '星黛露', keywords: ['迪士尼', '兔子', '紫色'], color_map: {}, grid_data: [], grid_size: 45, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=stellalou%20perler%20bead%20pattern%20purple%20rabbit%20disney%20pixel%20art&image_size=square', created_at: '2024-01-11' },
-  { id: '6', user_id: '6', title: '马里奥', keywords: ['游戏', '经典', '红色'], color_map: {}, grid_data: [], grid_size: 32, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=mario%20perler%20bead%20pattern%20red%20game%20pixel%20art&image_size=square', created_at: '2024-01-10' },
-  { id: '7', user_id: '7', title: '小熊维尼', keywords: ['迪士尼', '可爱', '黄色'], color_map: {}, grid_data: [], grid_size: 30, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=winnie%20the%20pooh%20perler%20bead%20pattern%20yellow%20bear%20pixel%20art&image_size=square', created_at: '2024-01-09' },
-  { id: '8', user_id: '8', title: '史迪奇', keywords: ['迪士尼', '外星', '蓝色'], color_map: {}, grid_data: [], grid_size: 42, image_url: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=stitch%20perler%20bead%20pattern%20blue%20alien%20disney%20pixel%20art&image_size=square', created_at: '2024-01-08' },
-]
+import { PatternViewer } from '../components/PatternViewer'
+import { GridPreview } from '../components/GridPreview'
+import { getSortedColorUsage } from '../utils/colorMatcher'
+import { presetPatterns } from '../data/presetPatterns'
 
 const categories = ['全部', '卡通', '动漫', '游戏', '迪士尼', '可爱', '动物', '节日']
 
@@ -20,8 +13,50 @@ export function DiscoverPage() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('全部')
   const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest')
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null)
+  const [patterns, setPatterns] = useState<Pattern[]>([])
 
-  const filteredPatterns = mockPatterns.filter((pattern) => {
+  useEffect(() => {
+    const savedPatterns = JSON.parse(localStorage.getItem('discoverPatterns') || '[]')
+    const allPatterns = [...presetPatterns, ...savedPatterns]
+    const uniquePatterns = allPatterns.filter((pattern, index, self) =>
+      index === self.findIndex((p) => p.id === pattern.id)
+    )
+    setPatterns(uniquePatterns)
+  }, [])
+
+  const handleDelete = (id: string) => {
+    if (presetPatterns.some(p => p.id === id)) {
+      alert('预设图纸无法删除！')
+      return
+    }
+    
+    if (confirm('确定要删除这个图案吗？')) {
+      const savedPatterns = JSON.parse(localStorage.getItem('discoverPatterns') || '[]')
+      const updatedPatterns = savedPatterns.filter((p: Pattern) => p.id !== id)
+      localStorage.setItem('discoverPatterns', JSON.stringify(updatedPatterns))
+      
+      setPatterns(prev => prev.filter(p => p.id !== id))
+    }
+  }
+
+  const handleSaveToDiscover = () => {
+    if (!selectedPattern) return
+    
+    const savedPatterns = JSON.parse(localStorage.getItem('discoverPatterns') || '[]')
+    if (savedPatterns.some((p: Pattern) => p.id === selectedPattern.id)) {
+      alert('这个图案已经在发现页面了！')
+      return
+    }
+    
+    savedPatterns.push(selectedPattern)
+    localStorage.setItem('discoverPatterns', JSON.stringify(savedPatterns))
+    
+    setPatterns(prev => [...prev, selectedPattern])
+    alert('图案已添加到发现页面！')
+  }
+
+  const filteredPatterns = patterns.filter((pattern) => {
     const matchesKeyword =
       !searchKeyword ||
       pattern.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
@@ -36,8 +71,12 @@ export function DiscoverPage() {
     if (sortBy === 'latest') {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     }
-    return 0
+    return b.likes - a.likes
   })
+
+  const handleViewPattern = (pattern: Pattern) => {
+    setSelectedPattern(pattern)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
@@ -47,9 +86,18 @@ export function DiscoverPage() {
             <h1 className="text-3xl font-bold text-gray-800 mb-2">发现灵感</h1>
             <p className="text-gray-600">浏览社区分享的精彩拼豆作品</p>
           </div>
-          <div className="flex items-center space-x-2 text-gray-500">
-            <Sparkles size={20} />
-            <span>{mockPatterns.length} 个作品</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-gray-500">
+              <Sparkles size={20} />
+              <span>{patterns.length} 个作品</span>
+            </div>
+            <Link
+              to="/create"
+              className="flex items-center space-x-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors shadow-md"
+            >
+              <Plus size={18} />
+              <span>添加新图纸</span>
+            </Link>
           </div>
         </div>
 
@@ -116,16 +164,135 @@ export function DiscoverPage() {
               <Sparkles size={40} className="text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">没有找到匹配的图案</h3>
-            <p className="text-gray-500">尝试使用其他关键词或分类搜索</p>
+            <p className="text-gray-500 mb-6">尝试使用其他关键词或分类搜索</p>
+            <Link
+              to="/create"
+              className="inline-flex items-center space-x-2 px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              <Upload size={20} />
+              <span>创建新图纸</span>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedPatterns.map((pattern) => (
-              <PatternCard key={pattern.id} pattern={pattern} />
-            ))}
+            {sortedPatterns.map((pattern) => {
+              const colorUsage = pattern.grid_data?.length ? getSortedColorUsage(pattern.grid_data) : []
+              const totalColors = colorUsage.length
+              const totalBeads = colorUsage.reduce((sum, c) => sum + c.count, 0)
+              const isPreset = presetPatterns.some(p => p.id === pattern.id)
+              
+              return (
+                <div
+                  key={pattern.id}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                >
+                  <div 
+                    className="relative h-48 bg-gray-100 overflow-hidden cursor-pointer group"
+                    onClick={() => handleViewPattern(pattern)}
+                  >
+                    {pattern.grid_data?.length ? (
+                      <div className="w-full h-full flex items-center justify-center p-4">
+                        <GridPreview grid={pattern.grid_data} cellSize={Math.max(4, Math.floor(160 / pattern.grid_size))} />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-4xl">🧩</span>
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                      <span className="text-sm font-medium text-gray-700">热门</span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="w-full py-2 bg-white text-pink-500 font-medium rounded-lg hover:bg-pink-50 transition-colors">
+                        查看图纸
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-bold text-gray-800 truncate">{pattern.title}</h3>
+                      {!isPreset && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(pattern.id)
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="删除"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>{pattern.grid_size}x{pattern.grid_size}</span>
+                      <span>{totalColors}种颜色</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {pattern.keywords?.slice(0, 3).map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-pink-50 text-pink-500 text-xs rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">
+                      共 {totalBeads} 颗豆粒
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
+
+      {selectedPattern && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedPattern(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-800 text-lg">{selectedPattern.title}</h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedPattern.keywords?.slice(0, 5).map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={handleSaveToDiscover}
+                  className="flex items-center space-x-2 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                >
+                  <Plus size={16} />
+                  <span>添加到发现</span>
+                </button>
+                <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <X size={24} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4 h-[calc(90vh-100px)]">
+              {selectedPattern.grid_data?.length ? (
+                <PatternViewer grid={selectedPattern.grid_data} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  暂无图纸数据
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

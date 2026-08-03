@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Search, Trash2, FolderOpen, Image as ImageIcon } from 'lucide-react'
+import { Search, Trash2, FolderOpen, Image as ImageIcon, X } from 'lucide-react'
 import { Pattern } from '../types'
 import { PatternCard } from '../components/PatternCard'
+import { PatternViewer } from '../components/PatternViewer'
 
 export function SavedPage() {
   const [patterns, setPatterns] = useState<Pattern[]>([])
   const [searchKeyword, setSearchKeyword] = useState('')
   const [filteredPatterns, setFilteredPatterns] = useState<Pattern[]>([])
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null)
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('patterns') || '[]')
@@ -81,7 +83,10 @@ export function SavedPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPatterns.map((pattern) => (
               <div key={pattern.id}>
-                <PatternCard pattern={pattern} />
+                <PatternCard 
+                  pattern={pattern} 
+                  onView={() => setSelectedPattern(pattern)} 
+                />
                 <button
                   onClick={() => handleDelete(pattern.id)}
                   className="mt-2 w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
@@ -94,6 +99,40 @@ export function SavedPage() {
           </div>
         )}
       </div>
+
+      {selectedPattern && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedPattern(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-800 text-lg">{selectedPattern.title}</h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedPattern.keywords?.slice(0, 5).map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={24} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 h-[calc(90vh-100px)]">
+              {selectedPattern.grid_data?.length ? (
+                <PatternViewer grid={selectedPattern.grid_data} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  暂无图纸数据
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

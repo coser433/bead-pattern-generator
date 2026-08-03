@@ -83,7 +83,7 @@ export async function generateGrid(
   return { grid, gridData, width, height }
 }
 
-export function generatePatternImage(grid: PerlerColor[][], cellSize: number = 10): string {
+export function generatePatternImage(grid: PerlerColor[][], cellSize: number = 20): string {
   const rows = grid.length
   const cols = grid[0].length
   
@@ -93,23 +93,41 @@ export function generatePatternImage(grid: PerlerColor[][], cellSize: number = 1
   
   const ctx = canvas.getContext('2d')!
   
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const color = grid[y][x]
+      
       ctx.fillStyle = color.hex
       ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
       
-      ctx.strokeStyle = '#ffffff33'
+      ctx.strokeStyle = '#cccccc'
       ctx.lineWidth = 0.5
       ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
+      
+      ctx.fillStyle = getContrastColor(color.hex)
+      ctx.font = `${Math.max(6, cellSize * 0.4)}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(color.id, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2)
     }
   }
   
   return canvas.toDataURL('image/png')
 }
 
+function getContrastColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 128 ? '#333333' : '#ffffff'
+}
+
 export function downloadPatternImage(grid: PerlerColor[][], filename: string) {
-  const dataUrl = generatePatternImage(grid, 10)
+  const dataUrl = generatePatternImage(grid, 20)
   const link = document.createElement('a')
   link.download = `${filename}.png`
   link.href = dataUrl

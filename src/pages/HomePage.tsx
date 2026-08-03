@@ -1,6 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Upload, Sparkles, Heart, Users, ArrowRight, Star } from 'lucide-react'
-import { PixelPattern } from '../components/PixelPattern'
+import { Upload, Sparkles, Heart, Users, ArrowRight, Star, X } from 'lucide-react'
+import { Pattern } from '../types'
+import { PatternViewer } from '../components/PatternViewer'
+import { GridPreview } from '../components/GridPreview'
+import { getSortedColorUsage } from '../utils/colorMatcher'
+import { presetPatterns } from '../data/presetPatterns'
 
 const features = [
   {
@@ -23,15 +28,13 @@ const features = [
   },
 ]
 
-const mockPatterns = [
-  { id: '1', title: 'Hello Kitty', keywords: ['卡通', '可爱'], grid_size: 30, pattern: 'hello-kitty' as const },
-  { id: '2', title: '皮卡丘', keywords: ['宠物小精灵', '动漫'], grid_size: 40, pattern: 'pikachu' as const },
-  { id: '3', title: '哆啦A梦', keywords: ['卡通', '经典'], grid_size: 35, pattern: 'doraemon' as const },
-  { id: '4', title: '美乐蒂', keywords: ['可爱', '兔子'], grid_size: 28, pattern: 'my-melody' as const },
-  { id: '5', title: '星黛露', keywords: ['迪士尼', '兔子'], grid_size: 45, pattern: 'stellalou' as const },
-]
-
 export function HomePage() {
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null)
+
+  const handleViewPattern = (pattern: Pattern) => {
+    setSelectedPattern(pattern)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
       <section className="relative overflow-hidden">
@@ -118,36 +121,55 @@ export function HomePage() {
           </div>
           
           <div className="flex overflow-x-auto gap-6 pb-4 -mx-4 px-4 scrollbar-hide">
-            {mockPatterns.map((pattern) => (
-              <div
-                key={pattern.id}
-                className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer group"
-              >
-                <div className="relative h-48 bg-gray-100 flex items-center justify-center">
-                  <PixelPattern pattern={pattern.pattern} size={192} />
-                  <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                    <span className="text-sm font-medium text-gray-700">热门</span>
+            {presetPatterns.map((pattern) => {
+              const colorUsage = pattern.grid_data?.length ? getSortedColorUsage(pattern.grid_data) : []
+              const totalColors = colorUsage.length
+              const totalBeads = colorUsage.reduce((sum, c) => sum + c.count, 0)
+              
+              return (
+                <div
+                  key={pattern.id}
+                  className="flex-shrink-0 w-64 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer group"
+                  onClick={() => handleViewPattern(pattern)}
+                >
+                  <div className="relative h-48 bg-gray-100 flex items-center justify-center p-3">
+                    {pattern.grid_data?.length ? (
+                      <GridPreview grid={pattern.grid_data} cellSize={Math.max(4, Math.floor(180 / pattern.grid_size))} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-4xl">🧩</span>
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3 flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                      <span className="text-sm font-medium text-gray-700">热门</span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="w-full py-2 bg-white text-pink-500 font-medium rounded-lg hover:bg-pink-50 transition-colors">
+                        查看图纸
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-gray-800 mb-2">{pattern.title}</h3>
+                    <div className="flex flex-wrap gap-1">
+                      {pattern.keywords?.slice(0, 3).map((keyword, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-pink-50 text-pink-500 text-xs rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-2">
+                      {pattern.grid_size}x{pattern.grid_size} | {totalColors}种颜色 | {totalBeads}颗豆
+                    </div>
                   </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-800 mb-2">{pattern.title}</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {pattern.keywords.map((keyword, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 bg-pink-50 text-pink-500 text-xs rounded-full"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    {pattern.grid_size}x{pattern.grid_size} 网格
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -183,6 +205,40 @@ export function HomePage() {
           </div>
         </div>
       </footer>
+
+      {selectedPattern && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedPattern(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-800 text-lg">{selectedPattern.title}</h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {selectedPattern.keywords?.slice(0, 5).map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={24} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 h-[calc(90vh-100px)]">
+              {selectedPattern.grid_data?.length ? (
+                <PatternViewer grid={selectedPattern.grid_data} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  暂无图纸数据
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

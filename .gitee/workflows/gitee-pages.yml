@@ -1,0 +1,23 @@
+name: Gitee Pages部署
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: 安装依赖
+        run: npm install
+        
+      - name: 构建项目
+        run: npm run build
+        
+      - name: 发布到Gitee Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: dist
